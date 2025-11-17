@@ -1,0 +1,12 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+	ignorecase = true
+[user]
+	name = surazy16
+	email = surazystorepaypal@gmail.com
+[remote "origin"]
+	url = https://github.com/surazy/newmezmur-app.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
