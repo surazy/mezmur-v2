@@ -91,7 +91,7 @@ export default function HomePage() {
       {/* Collapsing Header */}
       <Animated.View style={[styles.header, { height: headerHeight }]}>
         <ImageBackground
-          source={require('@/assets/images/categories/mesgana.jpg')}
+          source={require('@/assets/images/categories/ledet.jpg')}
           style={styles.imageBackground}
           resizeMode="cover"
         >
@@ -150,7 +150,7 @@ export default function HomePage() {
       {/* Scroll Content */}
       <Animated.ScrollView
         style={styles.scrollView}
-        contentContainerStyle={{ paddingTop: HEADER_MAX_HEIGHT }}
+        contentContainerStyle={{ paddingTop: HEADER_MAX_HEIGHT, paddingBottom: 60 }}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
         onScroll={Animated.event(

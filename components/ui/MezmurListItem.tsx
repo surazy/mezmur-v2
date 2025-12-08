@@ -19,11 +19,11 @@ interface MezmurListItemProps {
   canMoveDown?: boolean;
 }
 
-export default function MezmurListItem({ 
-  mezmur, 
-  onPress, 
-  showCheckbox = false, 
-  isSelected = false, 
+export default function MezmurListItem({
+  mezmur,
+  onPress,
+  showCheckbox = false,
+  isSelected = false,
   onSelect,
   number,
   showReorderControls = false,
@@ -62,7 +62,7 @@ export default function MezmurListItem({
           />
         </View>
       )}
-      
+
       <View style={[styles.content, { marginLeft: (number !== undefined || showCheckbox) ? 0 : 16 }]}>
         <View style={styles.header}>
           <Text style={[styles.title, { color: colors.text }]} numberOfLines={2}>
@@ -80,15 +80,15 @@ export default function MezmurListItem({
             )}
           </View>
         </View>
-        
+
         <Text style={[styles.description, { color: colors.textSecondary }]} numberOfLines={2}>
           {mezmur.first_line || mezmur.description}
         </Text>
-        
+
         <View style={styles.footer}>
-          <Text style={[styles.category, { color: colors.textSecondary }]}>
+          {/* <Text style={[styles.category, { color: colors.textSecondary }]}>
             {mezmur.category}
-          </Text>
+          </Text> */}
         </View>
       </View>
 
@@ -98,36 +98,36 @@ export default function MezmurListItem({
           <TouchableOpacity
             style={[
               styles.reorderButton,
-              { 
+              {
                 backgroundColor: canMoveUp ? colors.primary : colors.border,
-                opacity: canMoveUp ? 1 : 0.5 
+                opacity: canMoveUp ? 1 : 0.5
               }
             ]}
             onPress={onMoveUp}
             disabled={!canMoveUp}
           >
-            <MaterialIcons 
-              name="keyboard-arrow-up" 
-              size={20} 
-              color={canMoveUp ? "white" : colors.textSecondary} 
+            <MaterialIcons
+              name="keyboard-arrow-up"
+              size={20}
+              color={canMoveUp ? "white" : colors.textSecondary}
             />
           </TouchableOpacity>
-          
+
           <TouchableOpacity
             style={[
               styles.reorderButton,
-              { 
+              {
                 backgroundColor: canMoveDown ? colors.primary : colors.border,
-                opacity: canMoveDown ? 1 : 0.5 
+                opacity: canMoveDown ? 1 : 0.5
               }
             ]}
             onPress={onMoveDown}
             disabled={!canMoveDown}
           >
-            <MaterialIcons 
-              name="keyboard-arrow-down" 
-              size={20} 
-              color={canMoveDown ? "white" : colors.textSecondary} 
+            <MaterialIcons
+              name="keyboard-arrow-down"
+              size={20}
+              color={canMoveDown ? "white" : colors.textSecondary}
             />
           </TouchableOpacity>
         </View>

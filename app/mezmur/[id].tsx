@@ -7,23 +7,29 @@ import {
   TouchableOpacity,
   Platform,
   Alert,
-  ActivityIndicator
+  ActivityIndicator,
+  FlatList,
+  Dimensions,
+  ListRenderItemInfo
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import { useMezmur } from '@/hooks/useMezmur';
 import { Mezmur } from '@/types';
 import { PDFService } from '@/services/pdfService';
 
 export default function MezmurDetailPage() {
   const { colors, settings, updateSettings } = useTheme();
-  const { mezmurs, userMezmurs, addToFavorites, removeFromFavorites, addToHistory, isFavorite, getMezmursByCategory } = useMezmur();
+  const { mezmurs, userMezmurs, favorites, addToFavorites, removeFromFavorites, addToHistory, isFavorite, getMezmursByCategory } = useMezmur();
   const insets = useSafeAreaInsets();
-  const { id } = useLocalSearchParams<{ id: string }>();
-  
+  const { id, from } = useLocalSearchParams<{ id: string; from?: string }>();
+
   const [mezmur, setMezmur] = useState<Mezmur | null>(null);
+  const [activeMezmur, setActiveMezmur] = useState<Mezmur | null>(null);
   const [categoryMezmurs, setCategoryMezmurs] = useState<Mezmur[]>([]);
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -34,12 +40,14 @@ export default function MezmurDetailPage() {
     if (id) {
       const allMezmurs = [...mezmurs, ...userMezmurs];
       const foundMezmur = allMezmurs.find(m => m.id === id);
-      
+
       if (foundMezmur) {
         setMezmur(foundMezmur);
+        setActiveMezmur(foundMezmur);
         addToHistory(id);
       } else {
         setMezmur(null);
+        setActiveMezmur(null);
       }
     }
   }, [id, mezmurs, userMezmurs]);
@@ -47,17 +55,46 @@ export default function MezmurDetailPage() {
   // Update category list and current index when mezmur or context changes
   useEffect(() => {
     if (mezmur) {
-      const categoryList = getMezmursByCategory(mezmur.category);
-      setCategoryMezmurs(categoryList);
-      
-      const index = categoryList.findIndex(m => m.id === mezmur.id);
+      let playlist: Mezmur[] = [];
+
+      if (from === 'favorites') {
+        const allMezmurs = [...mezmurs, ...userMezmurs];
+        // Reconstruct favorites list in order
+        // Note: We should ideally respect the sort order from favorites page, 
+        // but for now we'll just use the order in the favorites array (which is insertion order unless reordered)
+        // Wait, favorites page does this:
+        /*
+          const sortedFavorites = uniqueFavoriteMezmurs.sort((a, b) => {
+            const aFavorite = favorites.find(f => f.mezmurId === a.id);
+            const bFavorite = favorites.find(f => f.mezmurId === b.id);
+            return new Date(bFavorite?.addedAt || 0).getTime() - new Date(aFavorite?.addedAt || 0).getTime();
+          });
+        */
+        // If I just map favorites, I get them in the order they are in the array.
+        // Does reorderFavorites update the array order? Yes.
+        // So I should just map the favorites array to mezmurs.
+
+        playlist = favorites.map(f => allMezmurs.find(m => m.id === f.mezmurId)).filter(Boolean) as Mezmur[];
+
+        // Deduplicate just in case
+        playlist = Array.from(new Set(playlist.map(m => m.id)))
+          .map(id => playlist.find(m => m.id === id)!)
+          .filter(Boolean);
+
+      } else {
+        playlist = getMezmursByCategory(mezmur.category);
+      }
+
+      setCategoryMezmurs(playlist);
+
+      const index = playlist.findIndex(m => m.id === mezmur.id);
       setCurrentIndex(index);
     }
-  }, [mezmur, mezmurs, userMezmurs, getMezmursByCategory]);
+  }, [mezmur, mezmurs, userMezmurs, favorites, getMezmursByCategory, from]);
 
   const handleFavoriteToggle = () => {
     if (!mezmur) return;
-    
+
     if (isFavorite(mezmur.id)) {
       removeFromFavorites(mezmur.id);
     } else {
@@ -71,18 +108,34 @@ export default function MezmurDetailPage() {
     updateSettings({ fontSize: clampedSize });
   };
 
-  const handleShare = () => {
-    if (Platform.OS === 'web') {
-      Alert.alert('Share', `Sharing: ${mezmur?.title}`);
-    } else {
-      // Native share implementation
-      console.log('Sharing mezmur:', mezmur?.title);
+  const handleShare = async () => {
+     if (!mezmur) return;
+
+    setExportingPDF(true);
+    try {
+      const result = await PDFService.exportAndShare(
+        mezmur,
+        undefined,
+        {
+          fontSize: settings.fontSize,
+          darkMode: settings.themeMode === 'dark'
+        }
+      );
+
+      if (!result.success) {
+        Alert.alert('Export Error', result.error || 'Failed to export PDF');
+      }
+    } catch (error) {
+      console.error('PDF export error:', error);
+      Alert.alert('Export Error', 'An unexpected error occurred while exporting PDF');
+    } finally {
+      setExportingPDF(false);
     }
   };
 
   const handleExportPDF = async () => {
     if (!mezmur) return;
-    
+
     setExportingPDF(true);
     try {
       const result = await PDFService.exportAndShare(
@@ -107,33 +160,80 @@ export default function MezmurDetailPage() {
 
   const handleAudioToggle = () => {
     if (!mezmur?.audio_url) return;
-    
+
     // Audio playback implementation would go here
     setIsPlaying(!isPlaying);
     console.log(`${isPlaying ? 'Pausing' : 'Playing'} audio:`, mezmur.audio_url);
   };
 
-  const handlePreviousMezmur = () => {
-    if (currentIndex > 0 && categoryMezmurs.length > 0) {
-      const previousMezmur = categoryMezmurs[currentIndex - 1];
-      router.replace({
-        pathname: '/mezmur/[id]',
-        params: { id: previousMezmur.id }
-      });
+  const handleScroll = (event: any) => {
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(offsetX / SCREEN_WIDTH);
+
+    if (index >= 0 && index < categoryMezmurs.length) {
+      const currentVisibleMezmur = categoryMezmurs[index];
+      if (currentVisibleMezmur.id !== activeMezmur?.id) {
+        setActiveMezmur(currentVisibleMezmur);
+      }
     }
   };
 
-  const handleNextMezmur = () => {
-    if (currentIndex < categoryMezmurs.length - 1 && categoryMezmurs.length > 0) {
-      const nextMezmur = categoryMezmurs[currentIndex + 1];
-      router.replace({
-        pathname: '/mezmur/[id]',
-        params: { id: nextMezmur.id }
-      });
+  const handlePageChange = (event: any) => {
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(offsetX / SCREEN_WIDTH);
+
+    if (index !== currentIndex && index >= 0 && index < categoryMezmurs.length) {
+      const nextMezmur = categoryMezmurs[index];
+      // Preserve the 'from' param when navigating
+      router.setParams({ id: nextMezmur.id, from });
     }
   };
 
-  if (!mezmur) {
+  const getItemLayout = (_: any, index: number) => ({
+    length: SCREEN_WIDTH,
+    offset: SCREEN_WIDTH * index,
+    index,
+  });
+
+  const renderMezmurItem = ({ item: currentMezmur }: ListRenderItemInfo<Mezmur>) => {
+    return (
+      <View style={{ width: SCREEN_WIDTH, flex: 1 }}>
+        {/* Content */}
+        <ScrollView
+          style={styles.content}
+          contentContainerStyle={styles.contentContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={[
+            styles.lyricsText,
+            {
+              color: colors.text,
+              fontSize: settings.fontSize,
+              lineHeight: settings.fontSize * 1.6
+            }
+          ]}>
+            {currentMezmur.content}
+          </Text>
+
+          {/* Mezmur Info */}
+          <View style={[styles.infoSection, { borderTopColor: colors.border }]}>
+            {currentMezmur.isUserAdded && (
+              <>
+                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
+                  Source:
+                </Text>
+                <Text style={[styles.infoValue, { color: colors.accent }]}>
+                  User Added
+                </Text>
+              </>
+            )}
+          </View>
+        </ScrollView>
+      </View>
+    );
+  };
+
+  if (!mezmur || !activeMezmur || categoryMezmurs.length === 0) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.notFound}>
@@ -146,50 +246,54 @@ export default function MezmurDetailPage() {
     );
   }
 
-  const showNavigation = categoryMezmurs.length > 1 && currentIndex >= 0;
-  const canGoPrevious = currentIndex > 0;
-  const canGoNext = currentIndex < categoryMezmurs.length - 1;
+
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={[styles.header, { 
+      <View style={[styles.header, {
         paddingTop: insets.top,
         backgroundColor: colors.primary,
-        borderBottomColor: colors.border 
+        borderBottomColor: colors.border
       }]}>
         <View style={styles.headerContent}>
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => router.back()}
             style={styles.backButton}
           >
             <MaterialIcons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
-          
+
           <View style={styles.headerText}>
             <Text style={styles.headerTitle} numberOfLines={2}>
-              {mezmur.title}
+              {activeMezmur.title}
             </Text>
-            {mezmur.first_line && (
+            {activeMezmur.first_line && (
               <Text style={styles.headerSubtitle} numberOfLines={1}>
-                {mezmur.first_line}
+                {activeMezmur.first_line}
               </Text>
             )}
           </View>
 
           <View style={styles.headerActions}>
-            <TouchableOpacity 
-              onPress={handleFavoriteToggle}
+            <TouchableOpacity
+              onPress={() => {
+                if (isFavorite(activeMezmur.id)) {
+                  removeFromFavorites(activeMezmur.id);
+                } else {
+                  addToFavorites(activeMezmur.id);
+                }
+              }}
               style={styles.actionButton}
             >
-              <MaterialIcons 
-                name={isFavorite(mezmur.id) ? "favorite" : "favorite-border"} 
-                size={24} 
-                color={isFavorite(mezmur.id) ? "#F59E0B" : "white"} 
+              <MaterialIcons
+                name={isFavorite(activeMezmur.id) ? "favorite" : "favorite-border"}
+                size={24}
+                color={isFavorite(activeMezmur.id) ? "#F59E0B" : "white"}
               />
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               onPress={handleShare}
               style={styles.actionButton}
             >
@@ -199,93 +303,28 @@ export default function MezmurDetailPage() {
         </View>
       </View>
 
-      {/* Navigation Bar */}
-      {showNavigation && (
-        <View style={[styles.navigationBar, { 
-          backgroundColor: colors.surface, 
-          borderBottomColor: colors.border 
-        }]}>
-          <TouchableOpacity 
-            onPress={handlePreviousMezmur}
-            style={[
-              styles.navButton, 
-              { 
-                backgroundColor: canGoPrevious ? colors.primary : colors.border,
-                opacity: canGoPrevious ? 1 : 0.5
-              }
-            ]}
-            disabled={!canGoPrevious}
-          >
-            <MaterialIcons 
-              name="chevron-left" 
-              size={20} 
-              color={canGoPrevious ? "white" : colors.textSecondary} 
-            />
-            <Text style={[
-              styles.navButtonText, 
-              { color: canGoPrevious ? "white" : colors.textSecondary }
-            ]}>
-              Previous
-            </Text>
-          </TouchableOpacity>
-
-          <View style={styles.positionIndicator}>
-            <Text style={[styles.positionText, { color: colors.text }]}>
-              {currentIndex + 1} of {categoryMezmurs.length}
-            </Text>
-            <Text style={[styles.categoryText, { color: colors.textSecondary }]} numberOfLines={1}>
-              in {mezmur.category}
-            </Text>
-          </View>
-
-          <TouchableOpacity 
-            onPress={handleNextMezmur}
-            style={[
-              styles.navButton, 
-              { 
-                backgroundColor: canGoNext ? colors.primary : colors.border,
-                opacity: canGoNext ? 1 : 0.5
-              }
-            ]}
-            disabled={!canGoNext}
-          >
-            <Text style={[
-              styles.navButtonText, 
-              { color: canGoNext ? "white" : colors.textSecondary }
-            ]}>
-              Next
-            </Text>
-            <MaterialIcons 
-              name="chevron-right" 
-              size={20} 
-              color={canGoNext ? "white" : colors.textSecondary} 
-            />
-          </TouchableOpacity>
-        </View>
-      )}
-
       {/* Controls */}
       <View style={[styles.controls, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         {/* Audio Controls */}
-        {mezmur.audio_url && (
+        {activeMezmur.audio_url && (
           <View style={styles.audioControls}>
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={handleAudioToggle}
               style={[styles.audioButton, { backgroundColor: colors.primary }]}
             >
-              <MaterialIcons 
-                name={isPlaying ? "pause" : "play-arrow"} 
-                size={24} 
-                color="white" 
+              <MaterialIcons
+                name={isPlaying ? "pause" : "play-arrow"}
+                size={24}
+                color="white"
               />
             </TouchableOpacity>
             <View style={styles.audioInfo}>
               <Text style={[styles.audioText, { color: colors.text }]}>
                 {isPlaying ? 'Playing...' : 'Tap to play'}
               </Text>
-              {mezmur.audio_duration && (
+              {activeMezmur.audio_duration && (
                 <Text style={[styles.audioDuration, { color: colors.textSecondary }]}>
-                  {Math.floor(mezmur.audio_duration / 60)}:{String(mezmur.audio_duration % 60).padStart(2, '0')}
+                  {Math.floor(activeMezmur.audio_duration / 60)}:{String(activeMezmur.audio_duration % 60).padStart(2, '0')}
                 </Text>
               )}
             </View>
@@ -294,19 +333,19 @@ export default function MezmurDetailPage() {
 
         {/* Font Controls */}
         <View style={styles.fontControls}>
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => handleFontSizeChange(false)}
             style={[styles.fontButton, { backgroundColor: colors.card, borderColor: colors.border }]}
             disabled={settings.fontSize <= 12}
           >
             <MaterialIcons name="text-decrease" size={20} color={colors.text} />
           </TouchableOpacity>
-          
+
           <Text style={[styles.fontSizeText, { color: colors.text }]}>
             {settings.fontSize}px
           </Text>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             onPress={() => handleFontSizeChange(true)}
             style={[styles.fontButton, { backgroundColor: colors.card, borderColor: colors.border }]}
             disabled={settings.fontSize >= 24}
@@ -314,7 +353,7 @@ export default function MezmurDetailPage() {
             <MaterialIcons name="text-increase" size={20} color={colors.text} />
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={handleExportPDF}
             style={[styles.exportButton, { backgroundColor: colors.secondary }]}
             disabled={exportingPDF}
@@ -328,51 +367,22 @@ export default function MezmurDetailPage() {
         </View>
       </View>
 
-      {/* Content */}
-      <ScrollView 
-        style={styles.content}
-        contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        <Text style={[
-          styles.lyricsText, 
-          { 
-            color: colors.text, 
-            fontSize: settings.fontSize,
-            lineHeight: settings.fontSize * 1.6 
-          }
-        ]}>
-          {mezmur.content}
-        </Text>
-        
-        {/* Mezmur Info */}
-        <View style={[styles.infoSection, { borderTopColor: colors.border }]}>
-          <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-            Category:
-          </Text>
-          <Text style={[styles.infoValue, { color: colors.text }]}>
-            {mezmur.category}
-          </Text>
-          
-          <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-            Language:
-          </Text>
-          <Text style={[styles.infoValue, { color: colors.text }]}>
-            {mezmur.language === 'am' ? 'ግእዝ/አማርኛ' : mezmur.language}
-          </Text>
-          
-          {mezmur.isUserAdded && (
-            <>
-              <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-                Source:
-              </Text>
-              <Text style={[styles.infoValue, { color: colors.accent }]}>
-                User Added
-              </Text>
-            </>
-          )}
-        </View>
-      </ScrollView>
+      <FlatList
+        data={categoryMezmurs}
+        renderItem={renderMezmurItem}
+        keyExtractor={(item) => item.id}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        initialScrollIndex={currentIndex}
+        getItemLayout={getItemLayout}
+        onMomentumScrollEnd={handlePageChange}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        initialNumToRender={1}
+        maxToRenderPerBatch={2}
+        windowSize={3}
+      />
     </View>
   );
 }
@@ -390,6 +400,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingTop: 8,
+    height: 60,
   },
   backButton: {
     marginRight: 16,
@@ -514,13 +525,11 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   lyricsText: {
-    fontFamily: Platform.select({
-      ios: 'Menlo',
-      android: 'monospace',
-      default: 'monospace'
-    }),
     textAlign: 'left',
     marginBottom: 32,
+    textShadowColor: 'rgba(255, 255, 255, 0.25)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
   },
   infoSection: {
     borderTopWidth: 1,

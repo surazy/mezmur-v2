@@ -11,15 +11,16 @@ function BouncyIcon({ name, color, size, focused }: any) {
 
   useEffect(() => {
     Animated.spring(scale, {
-      toValue: focused ? 1.3 : 1,
-      friction: 5,
+      toValue: focused ? 1.25 : 1,
+      friction: 6,
+      tension: 150,
       useNativeDriver: true,
     }).start();
   }, [focused]);
 
   return (
     <Animated.View style={{ transform: [{ scale }] }}>
-      <MaterialIcons name={name} size={size} color={color} />
+      <MaterialIcons name={name} size={size + 2} color={color} />
     </Animated.View>
   );
 }
@@ -34,9 +35,13 @@ export default function TabLayout() {
       <Tabs
         screenOptions={{
           headerShown: false,
+
+
+
+          // ⭐ Beautiful blurred glass effect
           tabBarBackground: () => (
             <BlurView
-              intensity={80}
+              intensity={90}
               tint={isDark ? 'dark' : 'light'}
               style={{
                 position: 'absolute',
@@ -48,37 +53,40 @@ export default function TabLayout() {
               }}
             />
           ),
+
+          // ⭐ Floating frosted bar styling
           tabBarStyle: {
             position: 'absolute',
-            bottom: 16 + insets.bottom,
-            left: 20,
-            right: 20,
-            borderTopWidth: 0,
-            borderRadius: 24,
+            bottom: 20 + insets.bottom,
+            left: 25,
+            right: 25,
             height: 65,
-            paddingBottom: Platform.OS === 'ios' ? 10 : 8,
-            paddingTop: 8,
+
+            backgroundColor: 'transparent',
+            borderRadius: 26,
+            borderWidth: 1,
+            borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
             overflow: 'hidden',
+
+            // Soft floating glass shadow
             shadowColor: '#000',
-            shadowOpacity: 0.2,
-            shadowOffset: { width: 0, height: 6 },
-            shadowRadius: 10,
-            elevation: 10,
+            shadowOpacity: 0.15,
+            shadowOffset: { width: 0, height: 8 },
+            shadowRadius: 20,
+            elevation: 25,
+
+            paddingBottom: Platform.OS === 'ios' ? 10 : 6,
+            paddingTop: 8,
           },
+
           tabBarActiveTintColor: colors.primary,
-          tabBarInactiveTintColor: isDark ? '#aaa' : '#666',
+          tabBarInactiveTintColor: isDark ? '#9E9E9E' : '#666',
           tabBarLabelStyle: {
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: '600',
-            marginBottom: 4,
+            marginBottom: 5,
           },
-          tabBarIconStyle: {
-            marginTop: 4,
-          },
-          sceneStyle: {
-            backgroundColor: colors.background,
-            paddingBottom: 90,
-          },
+          tabBarIconStyle: { marginTop: 4 },
         }}
       >
         <Tabs.Screen
@@ -86,16 +94,27 @@ export default function TabLayout() {
           options={{
             title: 'መዝሙሮች',
             tabBarIcon: ({ color, size, focused }) => (
-              <BouncyIcon name="music-note" color={color} size={size + 2} focused={focused} />
+              <BouncyIcon name="music-note" color={color} size={size} focused={focused} />
             ),
           }}
         />
+
+        <Tabs.Screen
+          name="favorites"
+          options={{
+            title: 'ተወዳጆች',
+            tabBarIcon: ({ color, size, focused }) => (
+              <BouncyIcon name="favorite" color={color} size={size} focused={focused} />
+            ),
+          }}
+        />
+
         <Tabs.Screen
           name="manage"
           options={{
             title: 'አስተዳደር',
             tabBarIcon: ({ color, size, focused }) => (
-              <BouncyIcon name="settings" color={color} size={size + 2} focused={focused} />
+              <BouncyIcon name="settings" color={color} size={size} focused={focused} />
             ),
           }}
         />

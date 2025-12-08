@@ -1,71 +1,46 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  Alert,
   ActivityIndicator,
   Platform,
-  Alert
 } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import { useMezmur } from '@/hooks/useMezmur';
 import MezmurListItem from '@/components/ui/MezmurListItem';
 import { Mezmur } from '@/types';
-import { SupabaseService } from '@/services/supabaseService';
 import { PDFService } from '@/services/pdfService';
 
-export default function CategoryPage() {
+export default function FavoritesPage() {
   const { colors, settings } = useTheme();
-  const { getMezmursByCategory, reorderMezmurs } = useMezmur();
+  const { mezmurs, userMezmurs, favorites, reorderFavorites } = useMezmur();
   const insets = useSafeAreaInsets();
-  const { id, name } = useLocalSearchParams<{ id: string; name: string }>();
-
-  const [mezmurs, setMezmurs] = useState<Mezmur[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [selectionMode, setSelectionMode] = useState(false);
   const [reorderMode, setReorderMode] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [exportingPDF, setExportingPDF] = useState(false);
 
-  useEffect(() => {
-    loadCategoryMezmurs();
-  }, [id]);
+  // Get actual mezmur objects from favorites list
+  const favoriteMezmurs: Mezmur[] = favorites.map(favorite => {
+    const allMezmurs = [...mezmurs, ...userMezmurs];
+    return allMezmurs.find(m => m.id === favorite.mezmurId);
+  }).filter(Boolean) as Mezmur[];
 
-  // Refresh mezmurs when context changes (for reordering)
-  useEffect(() => {
-    if (id) {
-      const categoryMezmurs = getMezmursByCategory(id as any);
-      setMezmurs(categoryMezmurs);
-    }
-  }, [getMezmursByCategory, id]);
+  // Deduplicate
+  const uniqueFavoriteMezmurs = Array.from(new Set(favoriteMezmurs.map(m => m.id)))
+    .map(id => favoriteMezmurs.find(m => m.id === id)!)
+    .filter(Boolean);
 
-  const loadCategoryMezmurs = async () => {
-    setLoading(true);
-    try {
-      // Try to fetch from Supabase first
-      const result = await SupabaseService.fetchMezmursByCategory(id);
-
-      if (result.success && result.mezmurs.length > 0) {
-        setMezmurs(result.mezmurs);
-      } else {
-        // Fallback to local mezmurs
-        const localMezmurs = getMezmursByCategory(id as any);
-        setMezmurs(localMezmurs);
-      }
-    } catch (error) {
-      console.error('Error loading category mezmurs:', error);
-      // Fallback to local mezmurs
-      const localMezmurs = getMezmursByCategory(id as any);
-      setMezmurs(localMezmurs);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Sort by most recently favorited - REMOVED to allow manual reordering
+  // The order in 'favorites' array is the source of truth
+  const sortedFavorites = uniqueFavoriteMezmurs;
 
   const handleMezmurPress = (mezmur: Mezmur) => {
     if (selectionMode) {
@@ -76,7 +51,7 @@ export default function CategoryPage() {
     } else {
       router.push({
         pathname: '/mezmur/[id]',
-        params: { id: mezmur.id }
+        params: { id: mezmur.id, from: 'favorites' }
       });
     }
   };
@@ -90,10 +65,10 @@ export default function CategoryPage() {
   };
 
   const handleSelectAll = () => {
-    if (selectedIds.length === mezmurs.length) {
+    if (selectedIds.length === sortedFavorites.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(mezmurs.map(m => m.id));
+      setSelectedIds(sortedFavorites.map(m => m.id));
     }
   };
 
@@ -101,6 +76,40 @@ export default function CategoryPage() {
     setSelectionMode(!selectionMode);
     setSelectedIds([]);
     if (reorderMode) setReorderMode(false);
+  };
+
+  const handleExportPDF = async () => {
+    if (selectedIds.length === 0) {
+      Alert.alert('No Selection', 'Please select mezmurs to export');
+      return;
+    }
+
+    setExportingPDF(true);
+    try {
+      // Get selected mezmurs
+      const selectedMezmurs = sortedFavorites.filter(m => selectedIds.includes(m.id));
+
+      const result = await PDFService.exportAndShare(
+        selectedMezmurs,
+        'Favorite Mezmurs',
+        {
+          fontSize: settings.fontSize,
+          darkMode: settings.themeMode === 'dark'
+        }
+      );
+
+      if (result.success) {
+        setSelectionMode(false);
+        setSelectedIds([]);
+      } else {
+        Alert.alert('Export Error', result.error || 'Failed to export PDF');
+      }
+    } catch (error) {
+      console.error('PDF export error:', error);
+      Alert.alert('Export Error', 'An unexpected error occurred while exporting PDF');
+    } finally {
+      setExportingPDF(false);
+    }
   };
 
   const toggleReorderMode = () => {
@@ -113,99 +122,13 @@ export default function CategoryPage() {
 
   const handleMoveUp = async (index: number) => {
     if (index > 0) {
-      console.log(`🔼 Moving mezmur up: ${index} → ${index - 1}`);
-      try {
-        await reorderMezmurs(id as any, index, index - 1);
-        // The context will update and useEffect will refresh the local state
-      } catch (error) {
-        console.error('Error moving mezmur up:', error);
-        Alert.alert('Error', 'Failed to reorder mezmur. Please try again.');
-      }
+      await reorderFavorites(index, index - 1);
     }
   };
 
   const handleMoveDown = async (index: number) => {
-    if (index < mezmurs.length - 1) {
-      console.log(`🔽 Moving mezmur down: ${index} → ${index + 1}`);
-      try {
-        await reorderMezmurs(id as any, index, index + 1);
-        // The context will update and useEffect will refresh the local state
-      } catch (error) {
-        console.error('Error moving mezmur down:', error);
-        Alert.alert('Error', 'Failed to reorder mezmur. Please try again.');
-      }
-    }
-  };
-
-  const handleShare = async () => {
-     if (selectedIds.length === 0) {
-      Alert.alert('No Selection', 'Please select mezmurs to export');
-      return;
-    }
-
-    setExportingPDF(true);
-    try {
-      // Get selected mezmurs
-      const selectedMezmurs = mezmurs.filter(m => selectedIds.includes(m.id));
-      const categoryName = decodeURIComponent(name || 'Category');
-
-      const result = await PDFService.exportAndShare(
-        selectedMezmurs,
-        `${categoryName} - መዝሙራት`,
-        {
-          fontSize: settings.fontSize,
-          darkMode: settings.themeMode === 'dark'
-        }
-      );
-
-      if (result.success) {
-        // Exit selection mode after successful export
-        setSelectionMode(false);
-        setSelectedIds([]);
-      } else {
-        Alert.alert('Export Error', result.error || 'Failed to export PDF');
-      }
-    } catch (error) {
-      console.error('PDF export error:', error);
-      Alert.alert('Export Error', 'An unexpected error occurred while exporting PDF');
-    } finally {
-      setExportingPDF(false);
-    }
-  };
-
-  const handleExportPDF = async () => {
-    if (selectedIds.length === 0) {
-      Alert.alert('No Selection', 'Please select mezmurs to export');
-      return;
-    }
-
-    setExportingPDF(true);
-    try {
-      // Get selected mezmurs
-      const selectedMezmurs = mezmurs.filter(m => selectedIds.includes(m.id));
-      const categoryName = decodeURIComponent(name || 'Category');
-
-      const result = await PDFService.exportAndShare(
-        selectedMezmurs,
-        `${categoryName} - መዝሙራት`,
-        {
-          fontSize: settings.fontSize,
-          darkMode: settings.themeMode === 'dark'
-        }
-      );
-
-      if (result.success) {
-        // Exit selection mode after successful export
-        setSelectionMode(false);
-        setSelectedIds([]);
-      } else {
-        Alert.alert('Export Error', result.error || 'Failed to export PDF');
-      }
-    } catch (error) {
-      console.error('PDF export error:', error);
-      Alert.alert('Export Error', 'An unexpected error occurred while exporting PDF');
-    } finally {
-      setExportingPDF(false);
+    if (index < sortedFavorites.length - 1) {
+      await reorderFavorites(index, index + 1);
     }
   };
 
@@ -227,7 +150,7 @@ export default function CategoryPage() {
       onMoveUp={() => handleMoveUp(index)}
       onMoveDown={() => handleMoveDown(index)}
       canMoveUp={index > 0}
-      canMoveDown={index < mezmurs.length - 1}
+      canMoveDown={index < sortedFavorites.length - 1}
     />
   );
 
@@ -240,19 +163,14 @@ export default function CategoryPage() {
         borderBottomColor: colors.border
       }]}>
         <View style={styles.headerContent}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.backButton}
-          >
-            <MaterialIcons name="arrow-back" size={24} color="white" />
-          </TouchableOpacity>
+
 
           <View style={styles.headerText}>
-            <Text style={styles.headerTitle} numberOfLines={2}>
-              {decodeURIComponent(name || '')}
+            <Text style={styles.headerTitle}>
+              Favorites
             </Text>
             <Text style={styles.headerSubtitle}>
-              {mezmurs.length} መዝሙራት
+              {sortedFavorites.length} favorite mezmurs
             </Text>
           </View>
 
@@ -278,6 +196,8 @@ export default function CategoryPage() {
                 color="white"
               />
             </TouchableOpacity>
+
+            {/* <MaterialIcons name="favorite" size={24} color="white" /> */}
           </View>
         </View>
 
@@ -286,7 +206,7 @@ export default function CategoryPage() {
           <View style={styles.modeBar}>
             {reorderMode && (
               <Text style={styles.modeText}>
-                Reorder Mode - Use arrows to rearrange
+                Reorder Mode - Use arrows to rearrange favorites
               </Text>
             )}
             {selectionMode && selectedIds.length > 0 && (
@@ -297,13 +217,10 @@ export default function CategoryPage() {
                 <View style={styles.selectionActions}>
                   <TouchableOpacity onPress={handleSelectAll} style={styles.selectionAction}>
                     <MaterialIcons
-                      name={selectedIds.length === mezmurs.length ? "remove-done" : "select-all"}
+                      name={selectedIds.length === sortedFavorites.length ? "remove-done" : "select-all"}
                       size={20}
                       color="white"
                     />
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={handleShare} style={styles.selectionAction}>
-                    <MaterialIcons name="share" size={20} color="white" />
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={handleExportPDF}
@@ -324,33 +241,25 @@ export default function CategoryPage() {
       </View>
 
       {/* Content */}
-      {loading ? (
-        <View style={styles.loading}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-            Loading mezmurs...
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={mezmurs}
-          renderItem={renderMezmur}
-          keyExtractor={(item) => item.id}
-          style={styles.list}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <View style={styles.emptyState}>
-              <MaterialIcons name="music-off" size={64} color={colors.textSecondary} />
-              <Text style={[styles.emptyText, { color: colors.text }]}>
-                No mezmurs found in this category
-              </Text>
-              <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>
-                Sync to download new content
-              </Text>
-            </View>
-          }
-        />
-      )}
+      <FlatList
+        data={sortedFavorites}
+        renderItem={renderMezmur}
+        keyExtractor={(item) => item.id}
+        style={styles.list}
+        contentContainerStyle={{ paddingBottom: 100 }}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <View style={styles.emptyState}>
+            <MaterialIcons name="favorite-border" size={64} color={colors.textSecondary} />
+            <Text style={[styles.emptyText, { color: colors.text }]}>
+              No favorite mezmurs yet
+            </Text>
+            <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>
+              Tap the heart icon on any mezmur to add it to your favorites
+            </Text>
+          </View>
+        }
+      />
     </View>
   );
 }
@@ -387,8 +296,9 @@ const styles = StyleSheet.create({
   },
   headerActions: {
     flexDirection: 'row',
+    alignItems: 'center',
     marginLeft: 16,
-    gap: 8,
+    gap: 12,
   },
   actionButton: {
     padding: 4,
@@ -422,16 +332,6 @@ const styles = StyleSheet.create({
   list: {
     flex: 1,
   },
-  loading: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 32,
-  },
-  loadingText: {
-    fontSize: 16,
-    marginTop: 16,
-  },
   emptyState: {
     flex: 1,
     justifyContent: 'center',
@@ -449,5 +349,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 8,
     textAlign: 'center',
+    lineHeight: 20,
   },
 });

@@ -6,15 +6,13 @@ import {
   ScrollView,
   TouchableOpacity,
   Linking,
-  Platform,
-  Modal,
 } from 'react-native';
 import { MaterialIcons, FontAwesome } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import { useMezmur } from '@/hooks/useMezmur';
-import { LinearGradient } from 'expo-linear-gradient';
+
 
 interface ManageSectionProps {
   title: string;
@@ -68,7 +66,7 @@ export default function ManagePage() {
     }
   };
 
-  const handleAboutPress = () => setAboutVisible(true);
+  const handleAboutPress = () => router.push('/about');
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -96,17 +94,21 @@ export default function ManagePage() {
         </Text>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 110 }}
+      >
         {/* MY CONTENT */}
         <View style={styles.group}>
           <Text style={[styles.groupTitle, { color: colors.textSecondary }]}>MY CONTENT</Text>
-          <ManageSection
+          {/* <ManageSection
             title="Favorites"
             icon="favorite"
             count={favorites.length}
             onPress={handleFavoritesPress}
             color="#FFD700"
-          />
+          /> */}
           <ManageSection
             title="My Mezmurs"
             icon="person"
@@ -120,13 +122,12 @@ export default function ManagePage() {
         <View style={styles.group}>
           <Text style={[styles.groupTitle, { color: colors.textSecondary }]}>SETTINGS</Text>
           <ManageSection
-            title={`Theme: ${
-              settings.themeMode === 'auto'
-                ? 'Auto'
-                : settings.themeMode === 'dark'
+            title={`Theme: ${settings.themeMode === 'auto'
+              ? 'Auto'
+              : settings.themeMode === 'dark'
                 ? 'Dark'
                 : 'Light'
-            }`}
+              }`}
             icon="palette"
             onPress={handleThemePress}
             color="#FFD700"
@@ -178,40 +179,6 @@ export default function ManagePage() {
         </View>
       </ScrollView>
 
-      {/* Custom About Modal */}
-      {/* Custom About Modal */}
-<Modal visible={aboutVisible} transparent animationType="fade">
-  <View style={styles.modalBackground}>
-    <LinearGradient colors={['#FFD700', '#FFB300']} style={styles.modalContainer}>
-      <Text style={styles.modalTitle}>ፈለገ መዝሙራት</Text>
-      <Text style={styles.modalVersion}>ስሪት 1.0.0</Text>
-
-      <Text style={styles.modalDescription}>
-        ፈለገ መዝሙራት የኢትዮጵያ ኦርቶዶክስ ተዋሕዶ ቤተ ክርስቲያን መዝሙሮችን፣ መዝሙር ቃላትን፣ 
-        እና መዝሙር መርሃ ግብሮችን በአንድ ቦታ ያካትታል። ይህ መተግበሪያ በመንፈሳዊ እድገትና 
-        በእምነት መሠረት የተመሰረተ ነው። መዝሙሮችን በቀላሉ ለመፈለግ፣ ለመያዝ እና 
-        ለመካፈል ያስችላል።
-      </Text>
-
-      <Text style={styles.modalDescription}>
-        ይህ መተግበሪያ በኢትዮጵያዊ መንፈሳዊ ባህላዊ እና ቅዱሳዊ ዜማ ባለሞያዎች በመተባበር 
-        ተዘጋጀ ሲሆን፣ የተጠቃሚዎች ልምድን ለማሻሻል በዘመናዊ ቴክኖሎጂ ተቀላቅሏል።
-      </Text>
-
-      <Text style={styles.modalCopyright}>
-        © 2025 ፈለገ መዝሙራት፣ መብቱ በሙሉ የተጠበቀ ነው።
-      </Text>
-
-      <TouchableOpacity
-        style={styles.modalCloseButton}
-        onPress={() => setAboutVisible(false)}
-      >
-        <Text style={styles.modalCloseText}>ዝጋ</Text>
-      </TouchableOpacity>
-    </LinearGradient>
-  </View>
-</Modal>
-
     </View>
   );
 }
@@ -231,14 +198,4 @@ const styles = StyleSheet.create({
   sectionCount: { fontSize: 14 },
   socialMediaContainer: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', padding: 20, borderRadius: 12, borderWidth: 1 },
   socialIcon: { padding: 8 },
-
-  // Modal Styles
-  modalBackground: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-  modalContainer: { width: '80%', padding: 24, borderRadius: 20, alignItems: 'center' },
-  modalTitle: { fontSize: 28, fontWeight: 'bold', color: '#fff', marginBottom: 8 },
-  modalVersion: { fontSize: 18, color: '#fff', marginBottom: 8 },
-  modalDescription: { fontSize: 16, color: '#fff', textAlign: 'center', marginBottom: 12 },
-  modalCopyright: { fontSize: 14, color: '#fff', marginBottom: 16 },
-  modalCloseButton: { backgroundColor: '#fff', paddingHorizontal: 24, paddingVertical: 10, borderRadius: 12 },
-  modalCloseText: { color: '#000', fontWeight: 'bold', fontSize: 16 },
 });

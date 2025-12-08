@@ -43,7 +43,7 @@ export function MezmurProvider({ children }: { children: ReactNode }) {
     try {
       // Initialize with sample data if needed
       await SyncService.initializeWithSampleData();
-      
+
       // Load all data
       const [loadedMezmurs, loadedUserMezmurs, loadedFavorites, loadedHistory, loadedOrders] = await Promise.all([
         StorageService.getMezmurs(),
@@ -55,10 +55,16 @@ export function MezmurProvider({ children }: { children: ReactNode }) {
 
       setMezmurs(loadedMezmurs);
       setUserMezmurs(loadedUserMezmurs);
-      setFavorites(loadedFavorites);
+
+      // Deduplicate favorites to ensure index alignment
+      const uniqueFavorites = loadedFavorites.filter((fav, index, self) =>
+        index === self.findIndex((t) => t.mezmurId === fav.mezmurId)
+      );
+      setFavorites(uniqueFavorites);
+
       setHistory(loadedHistory);
       setCategoryOrders(loadedOrders);
-      
+
       console.log('🎵 Initialized MezmurContext:', {
         mezmurs: loadedMezmurs.length,
         userMezmurs: loadedUserMezmurs.length,
@@ -77,13 +83,13 @@ export function MezmurProvider({ children }: { children: ReactNode }) {
     try {
       // Optimistically update state
       setCategoryOrders(orders);
-      
+
       // Save to storage
       await StorageService.saveCategoryOrders(orders);
       console.log('✅ Category orders saved successfully');
     } catch (error) {
       console.error('❌ Failed to save category orders:', error);
-      
+
       // Revert state on failure
       setCategoryOrders(previousOrders);
       throw error;
@@ -91,11 +97,15 @@ export function MezmurProvider({ children }: { children: ReactNode }) {
   };
 
   const addToFavorites = async (mezmurId: string) => {
+    if (favorites.some(f => f.mezmurId === mezmurId)) {
+      return;
+    }
     const newFavorite: FavoriteItem = {
       mezmurId,
       addedAt: new Date().toISOString()
     };
-    const updatedFavorites = [...favorites, newFavorite];
+    // Prepend to list (Newest First)
+    const updatedFavorites = [newFavorite, ...favorites];
     setFavorites(updatedFavorites);
     await StorageService.saveFavorites(updatedFavorites);
   };
@@ -155,14 +165,14 @@ export function MezmurProvider({ children }: { children: ReactNode }) {
 
   const getMezmursByCategory = (category: MezmurCategory): Mezmur[] => {
     const allCategoryMezmurs = [...mezmurs, ...userMezmurs].filter(m => m.category === category);
-    
+
     // Check if we have a custom order for this category
     const customOrder = categoryOrders[category];
     if (customOrder && customOrder.length > 0) {
       // Sort by custom order, with any new items at the end
       const orderedMezmurs: Mezmur[] = [];
       const remainingMezmurs = [...allCategoryMezmurs];
-      
+
       // Add mezmurs in custom order
       customOrder.forEach(id => {
         const index = remainingMezmurs.findIndex(m => m.id === id);
@@ -171,13 +181,13 @@ export function MezmurProvider({ children }: { children: ReactNode }) {
           remainingMezmurs.splice(index, 1);
         }
       });
-      
+
       // Add any remaining mezmurs (new ones not in custom order)
       orderedMezmurs.push(...remainingMezmurs);
-      
+
       return orderedMezmurs;
     }
-    
+
     return allCategoryMezmurs;
   };
 
@@ -197,9 +207,9 @@ export function MezmurProvider({ children }: { children: ReactNode }) {
 
   const reorderMezmurs = async (category: MezmurCategory, fromIndex: number, toIndex: number) => {
     const categoryMezmurs = getMezmursByCategory(category);
-    if (fromIndex < 0 || fromIndex >= categoryMezmurs.length || 
-        toIndex < 0 || toIndex >= categoryMezmurs.length || 
-        fromIndex === toIndex) {
+    if (fromIndex < 0 || fromIndex >= categoryMezmurs.length ||
+      toIndex < 0 || toIndex >= categoryMezmurs.length ||
+      fromIndex === toIndex) {
       return;
     }
 
@@ -213,7 +223,7 @@ export function MezmurProvider({ children }: { children: ReactNode }) {
     // Update category order
     const newOrder = reorderedMezmurs.map(m => m.id);
     const updatedOrders = { ...categoryOrders, [category]: newOrder };
-    
+
     try {
       await saveCategoryOrdersWithFallback(updatedOrders);
     } catch (error) {
@@ -222,9 +232,9 @@ export function MezmurProvider({ children }: { children: ReactNode }) {
   };
 
   const reorderFavorites = async (fromIndex: number, toIndex: number) => {
-    if (fromIndex < 0 || fromIndex >= favorites.length || 
-        toIndex < 0 || toIndex >= favorites.length || 
-        fromIndex === toIndex) {
+    if (fromIndex < 0 || fromIndex >= favorites.length ||
+      toIndex < 0 || toIndex >= favorites.length ||
+      fromIndex === toIndex) {
       return;
     }
 
@@ -237,9 +247,9 @@ export function MezmurProvider({ children }: { children: ReactNode }) {
   };
 
   const reorderUserMezmurs = async (fromIndex: number, toIndex: number) => {
-    if (fromIndex < 0 || fromIndex >= userMezmurs.length || 
-        toIndex < 0 || toIndex >= userMezmurs.length || 
-        fromIndex === toIndex) {
+    if (fromIndex < 0 || fromIndex >= userMezmurs.length ||
+      toIndex < 0 || toIndex >= userMezmurs.length ||
+      fromIndex === toIndex) {
       return;
     }
 

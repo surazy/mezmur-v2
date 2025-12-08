@@ -1,6 +1,6 @@
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { Platform } from 'react-native';
 import { Mezmur } from '@/types';
 import { Asset } from 'expo-asset';
@@ -57,7 +57,7 @@ export class PDFService {
         
           /* 🌊 Logo watermark */
         ${watermarkUri
-          ? `
+        ? `
         body::before {
           content: "";
           position: fixed;
@@ -73,7 +73,7 @@ export class PDFService {
           z-index: -1;
           transform: rotate(-20deg);
         }`
-          : ''}
+        : ''}
 
 
         .header {
@@ -229,9 +229,7 @@ export class PDFService {
           <div class="mezmur-meta">
             
             
-            ${mezmur.first_line ? `
-          
-            ` : ''}
+           
             ${mezmur.isUserAdded ? `
             <div class="meta-item">
               <span class="meta-label">Source:</span>
@@ -273,20 +271,7 @@ export class PDFService {
         <div class="mezmur-container${index > 0 ? ' page-break' : ''}">
           <h2 class="mezmur-title">${mezmur.title}</h2>
           
-          ${options.includeMetadata !== false ? `
-          <div class="mezmur-meta">
-            <div class="meta-item">
-              <span class="meta-label">Category:</span>
-              <span class="meta-value">${mezmur.category}</span>
-            </div>
-            ${mezmur.first_line ? `
-            <div class="meta-item">
-              <span class="meta-label">First Line:</span>
-              <span class="meta-value">${mezmur.first_line}</span>
-            </div>
-            ` : ''}
-          </div>
-          ` : ''}
+         
           
           <div class="mezmur-content">${mezmur.content}</div>
           ${audioInfo}
@@ -322,12 +307,12 @@ export class PDFService {
   }
 
   static async exportSingleMezmur(
-    mezmur: Mezmur, 
+    mezmur: Mezmur,
     options: PDFExportOptions = {}
   ): Promise<{ success: boolean; uri?: string; error?: string }> {
     try {
       const html = this.generateSingleMezmurHTML(mezmur, options);
-      
+
       const { uri } = await Print.printToFileAsync({
         html,
         base64: false,
@@ -342,15 +327,15 @@ export class PDFService {
       return { success: true, uri };
     } catch (error) {
       console.error('Error exporting single mezmur:', error);
-      return { 
-        success: false, 
-        error: 'Failed to generate PDF. Please try again.' 
+      return {
+        success: false,
+        error: 'Failed to generate PDF. Please try again.'
       };
     }
   }
 
   static async exportMultipleMezmurs(
-    mezmurs: Mezmur[], 
+    mezmurs: Mezmur[],
     title: string,
     options: PDFExportOptions = {}
   ): Promise<{ success: boolean; uri?: string; error?: string }> {
@@ -360,7 +345,7 @@ export class PDFService {
       }
 
       const html = this.generateMultipleMezmurasHTML(mezmurs, title, options);
-      
+
       const { uri } = await Print.printToFileAsync({
         html,
         base64: false,
@@ -375,9 +360,9 @@ export class PDFService {
       return { success: true, uri };
     } catch (error) {
       console.error('Error exporting multiple mezmurs:', error);
-      return { 
-        success: false, 
-        error: 'Failed to generate PDF. Please try again.' 
+      return {
+        success: false,
+        error: 'Failed to generate PDF. Please try again.'
       };
     }
   }
@@ -385,11 +370,11 @@ export class PDFService {
   static async sharePDF(uri: string): Promise<{ success: boolean; error?: string }> {
     try {
       const isAvailable = await Sharing.isAvailableAsync();
-      
+
       if (!isAvailable) {
-        return { 
-          success: false, 
-          error: 'Sharing is not available on this device.' 
+        return {
+          success: false,
+          error: 'Sharing is not available on this device.'
         };
       }
 
@@ -401,21 +386,21 @@ export class PDFService {
       return { success: true };
     } catch (error) {
       console.error('Error sharing PDF:', error);
-      return { 
-        success: false, 
-        error: 'Failed to share PDF. Please try again.' 
+      return {
+        success: false,
+        error: 'Failed to share PDF. Please try again.'
       };
     }
   }
 
   static async exportAndShare(
-    mezmurs: Mezmur | Mezmur[], 
+    mezmurs: Mezmur | Mezmur[],
     title?: string,
     options: PDFExportOptions = {}
   ): Promise<{ success: boolean; error?: string }> {
     try {
       let result;
-      
+
       if (Array.isArray(mezmurs)) {
         result = await this.exportMultipleMezmurs(mezmurs, title || 'Mezmur Collection', options);
       } else {
@@ -428,7 +413,7 @@ export class PDFService {
 
       // Share the generated PDF
       const shareResult = await this.sharePDF(result.uri!);
-      
+
       // Clean up the temporary file after sharing
       try {
         await FileSystem.deleteAsync(result.uri!, { idempotent: true });
@@ -439,16 +424,16 @@ export class PDFService {
       return shareResult;
     } catch (error) {
       console.error('Error in exportAndShare:', error);
-      return { 
-        success: false, 
-        error: 'Failed to export and share PDF. Please try again.' 
+      return {
+        success: false,
+        error: 'Failed to export and share PDF. Please try again.'
       };
     }
   }
 
   static generateFileName(mezmur: Mezmur | Mezmur[], prefix: string = 'mezmur'): string {
     const timestamp = new Date().toISOString().split('T')[0];
-    
+
     if (Array.isArray(mezmur)) {
       return `${prefix}_collection_${timestamp}.pdf`;
     } else {

@@ -24,7 +24,7 @@ interface OnboardingPage {
   subtitle: string;
   description: string;
   icon: string;
-  gradientColors: string[];
+  gradientColors: [string, string, ...string[]];
 }
 
 const onboardingPages: OnboardingPage[] = [
@@ -114,10 +114,10 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 colors={['#FFD700', '#FFA500']}
                 style={styles.iconGradient}
               >
-                <MaterialIcons 
-                  name={page.icon as any} 
-                  size={60} 
-                  color="#000000" 
+                <MaterialIcons
+                  name={page.icon as any}
+                  size={60}
+                  color="#000000"
                 />
               </LinearGradient>
             </View>
@@ -153,10 +153,10 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 ]}
                 disabled={currentPage === 0}
               >
-                <MaterialIcons 
-                  name="chevron-left" 
-                  size={24} 
-                  color={currentPage === 0 ? 'rgba(255,215,0,0.3)' : '#FFD700'} 
+                <MaterialIcons
+                  name="chevron-left"
+                  size={24}
+                  color={currentPage === 0 ? 'rgba(255,215,0,0.3)' : '#FFD700'}
                 />
                 <Text style={[
                   styles.navButtonText,
@@ -173,10 +173,10 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 <Text style={styles.nextButtonText}>
                   {currentPage === onboardingPages.length - 1 ? 'Get Started' : 'Next'}
                 </Text>
-                <MaterialIcons 
-                  name={currentPage === onboardingPages.length - 1 ? 'check' : 'chevron-right'} 
-                  size={24} 
-                  color="#000000" 
+                <MaterialIcons
+                  name={currentPage === onboardingPages.length - 1 ? 'check' : 'chevron-right'}
+                  size={24}
+                  color="#000000"
                 />
               </TouchableOpacity>
             </View>
