@@ -140,8 +140,16 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     padding: 16,
-    borderBottomWidth: 1,
+    borderBottomWidth: 0,
     alignItems: 'flex-start',
+    borderRadius: 12,
+    marginHorizontal: 12,
+    marginVertical: 8,
+    shadowColor: '#007AFF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 6,
   },
   numberBadge: {
     width: 32,
@@ -175,6 +183,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     flex: 1,
     marginRight: 8,
+    fontFamily: 'Zemenay_Regular_Abel_Yeshewalem_c74cc019f5',
   },
   indicators: {
     flexDirection: 'row',
@@ -185,6 +194,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 18,
     marginBottom: 8,
+    fontFamily: 'Zemenay_Regular_Abel_Yeshewalem_c74cc019f5',
   },
   footer: {
     flexDirection: 'row',

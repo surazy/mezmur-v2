@@ -8,18 +8,27 @@ import { useTheme } from '@/hooks/useTheme';
 
 function BouncyIcon({ name, color, size, focused }: any) {
   const scale = useRef(new Animated.Value(1)).current;
+  const translateY = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.spring(scale, {
-      toValue: focused ? 1.25 : 1,
-      friction: 6,
-      tension: 150,
-      useNativeDriver: true,
-    }).start();
+    Animated.parallel([
+      Animated.spring(scale, {
+        toValue: focused ? 1.25 : 1,
+        friction: 6,
+        tension: 150,
+        useNativeDriver: true,
+      }),
+      Animated.spring(translateY, {
+        toValue: focused ? -6 : 0,
+        friction: 6,
+        tension: 150,
+        useNativeDriver: true,
+      })
+    ]).start();
   }, [focused]);
 
   return (
-    <Animated.View style={{ transform: [{ scale }] }}>
+    <Animated.View style={{ transform: [{ scale }, { translateY }] }}>
       <MaterialIcons name={name} size={size + 2} color={color} />
     </Animated.View>
   );
@@ -85,6 +94,7 @@ export default function TabLayout() {
             fontSize: 11,
             fontWeight: '600',
             marginBottom: 5,
+            fontFamily: 'Zemenay_Regular_Abel_Yeshewalem_c74cc019f5',
           },
           tabBarIconStyle: { marginTop: 4 },
         }}

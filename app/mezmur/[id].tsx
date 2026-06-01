@@ -373,11 +373,16 @@ export default function MezmurDetailPage() {
         keyExtractor={(item) => item.id}
         horizontal
         pagingEnabled
+        scrollEnabled={true}
         showsHorizontalScrollIndicator={false}
         initialScrollIndex={currentIndex}
         getItemLayout={getItemLayout}
         onMomentumScrollEnd={handlePageChange}
         onScroll={handleScroll}
+        scrollEventThrottle={16}
+        snapToInterval={SCREEN_WIDTH}
+        decelerationRate="fast"
+        style={styles.flatList}
         scrollEventThrottle={16}
         initialNumToRender={1}
         maxToRenderPerBatch={2}
@@ -413,10 +418,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'white',
     marginBottom: 2,
+    fontFamily: 'Zemenay_Regular_Abel_Yeshewalem_c74cc019f5',
   },
   headerSubtitle: {
     fontSize: 14,
     color: 'rgba(255,255,255,0.8)',
+    fontFamily: 'Zemenay_Regular_Abel_Yeshewalem_c74cc019f5',
   },
   headerActions: {
     flexDirection: 'row',
@@ -525,11 +532,16 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   lyricsText: {
-    textAlign: 'left',
+    textAlign: 'center',
     marginBottom: 32,
-    textShadowColor: 'rgba(255, 255, 255, 0.25)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 10,
+    backgroundColor: 'rgba(0, 122, 255, 0.06)',
+    paddingHorizontal: 20,
+    paddingVertical: 28,
+    borderRadius: 16,
+    letterSpacing: 0.5,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 122, 255, 0.15)',
+    fontFamily: 'Bela_Bereka_6a62aa4ee7',
   },
   infoSection: {
     borderTopWidth: 1,
@@ -556,5 +568,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: 16,
     textAlign: 'center',
+  },
+  flatList: {
+    flex: 1,
   },
 });

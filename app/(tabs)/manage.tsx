@@ -159,7 +159,7 @@ export default function ManagePage() {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.socialIcon}
-              onPress={() => handleSocialMediaPress('https://instagram.com/surazy_16')}
+              onPress={() => handleSocialMediaPress('https://instagram.com/felegebirhan27')}
             >
               <FontAwesome name="instagram" size={32} color="#E4405F" />
             </TouchableOpacity>
