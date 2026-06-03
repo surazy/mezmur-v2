@@ -4,7 +4,7 @@
     "slug": "onspace-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/iccon.png",
+    "icon": "./assets/images/ibon.png",
     "scheme": "onspaceapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -21,7 +21,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/iccon.png",
+        "foregroundImage": "./assets/images/iconer.png",
         "backgroundColor": "#000000"
       },
       "edgeToEdgeEnabled": true,
@@ -30,14 +30,14 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/iccon.png"
+      "favicon": "./assets/images/iconer.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/iccon.png",
+          "image": "./assets/images/iconer.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#000000"

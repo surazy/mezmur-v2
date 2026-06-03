@@ -179,6 +179,7 @@ export default function WelcomeSplash({ onComplete = () => {} }: WelcomeSplashPr
               source={require('@/assets/images/categories/iconer.jpg')}
               style={styles.logo}
               resizeMode="cover"
+              resizeMethod="resize"
             />
           </LinearGradient>
         </Animated.View>

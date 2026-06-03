@@ -91,9 +91,10 @@ export default function HomePage() {
       {/* Collapsing Header */}
       <Animated.View style={[styles.header, { height: headerHeight }]}>
         <ImageBackground
-          source={require('@/assets/images/categories/ledet.jpg')}
+          source={require('@/assets/images/categories/hider.png')}
           style={styles.imageBackground}
           resizeMode="cover"
+          resizeMethod="resize"
         >
           {/* Color fade overlay */}
           <Animated.View
