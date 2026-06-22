@@ -149,10 +149,10 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             colors={['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.6)']}
             style={styles.overlay}
           >
-            <Animated.View 
+            <Animated.View
               style={[
-                styles.pageContent, 
-                { 
+                styles.pageContent,
+                {
                   paddingTop: 0,
                   paddingBottom: insets.bottom + 150,
                   opacity,
@@ -215,7 +215,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         showsHorizontalScrollIndicator={false}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-          { 
+          {
             useNativeDriver: true,
             listener: (event: any) => handleScroll(event)
           }
@@ -227,7 +227,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       </Animated.ScrollView>
 
       {/* Static bottom controls */}
-      <View 
+      <View
         pointerEvents="box-none"
         style={[styles.bottomContainer, { paddingBottom: insets.bottom + 30 }]}
       >
@@ -379,7 +379,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 16,
-    fontFamily: 'Zemenay_Regular_Abel_Yeshewalem_c74cc019f5',
     letterSpacing: 0.8,
     textShadowColor: 'rgba(21, 49, 209, 0.6)',
     textShadowOffset: { width: 0, height: 2 },

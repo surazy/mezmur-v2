@@ -183,7 +183,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     flex: 1,
     marginRight: 8,
-    fontFamily: 'Zemenay_Regular_Abel_Yeshewalem_c74cc019f5',
   },
   indicators: {
     flexDirection: 'row',
@@ -194,7 +193,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 18,
     marginBottom: 8,
-    fontFamily: 'Zemenay_Regular_Abel_Yeshewalem_c74cc019f5',
   },
   footer: {
     flexDirection: 'row',

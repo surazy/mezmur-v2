@@ -138,7 +138,7 @@ export default function CategoryPage() {
   };
 
   const handleShare = async () => {
-     if (selectedIds.length === 0) {
+    if (selectedIds.length === 0) {
       Alert.alert('No Selection', 'Please select mezmurs to export');
       return;
     }
@@ -380,12 +380,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'white',
     marginBottom: 2,
-    fontFamily: 'Zemenay_Regular_Abel_Yeshewalem_c74cc019f5',
   },
   headerSubtitle: {
     fontSize: 14,
     color: 'rgba(255,255,255,0.8)',
-    fontFamily: 'Zemenay_Regular_Abel_Yeshewalem_c74cc019f5',
   },
   headerActions: {
     flexDirection: 'row',

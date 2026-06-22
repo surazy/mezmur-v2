@@ -8,7 +8,7 @@ interface WelcomeSplashProps {
   onComplete?: () => void;
 }
 
-export default function WelcomeSplash({ onComplete = () => {} }: WelcomeSplashProps) {
+export default function WelcomeSplash({ onComplete = () => { } }: WelcomeSplashProps) {
   const containerOpacity = useRef(new Animated.Value(1)).current;
   const logoScale = useRef(new Animated.Value(0.5)).current;
   const logoOpacity = useRef(new Animated.Value(0)).current;
@@ -265,7 +265,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     textAlign: 'center',
     letterSpacing: 0.8,
-    fontFamily: 'Zemenay_Regular_Abel_Yeshewalem_c74cc019f5',
   },
   subtitleContainer: {
     marginBottom: 50,
@@ -276,7 +275,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '500',
     letterSpacing: 0.5,
-    fontFamily: 'Zemenay_Regular_Abel_Yeshewalem_c74cc019f5',
   },
   loadingContainer: {
     flexDirection: 'row',

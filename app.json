@@ -42,16 +42,7 @@
         }
       ],
       "expo-web-browser",
-      "expo-secure-store",
-      [
-        "expo-font",
-        {
-          "fonts": [
-            "./assets/fonts/Zemenay_Regular_Abel_Yeshewalem_c74cc019f5.ttf",
-            "./assets/fonts/Bela_Bereka_6a62aa4ee7.ttf"
-          ]
-        }
-      ]
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true
