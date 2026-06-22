@@ -94,6 +94,7 @@ export default function TabLayout() {
             fontSize: 11,
             fontWeight: '600',
             marginBottom: 5,
+            fontFamily: 'Zemenay_Regular_Abel_Yeshewalem_c74cc019f5',
           },
           tabBarIconStyle: { marginTop: 4 },
         }}

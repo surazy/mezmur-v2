@@ -379,6 +379,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 16,
+    fontFamily: 'Zemenay_Regular_Abel_Yeshewalem_c74cc019f5',
     letterSpacing: 0.8,
     textShadowColor: 'rgba(21, 49, 209, 0.6)',
     textShadowOffset: { width: 0, height: 2 },
