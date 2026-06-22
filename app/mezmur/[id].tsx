@@ -383,7 +383,6 @@ export default function MezmurDetailPage() {
         snapToInterval={SCREEN_WIDTH}
         decelerationRate="fast"
         style={styles.flatList}
-        scrollEventThrottle={16}
         initialNumToRender={1}
         maxToRenderPerBatch={2}
         windowSize={3}
@@ -418,12 +417,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'white',
     marginBottom: 2,
-    fontFamily: 'Zemenay_Regular_Abel_Yeshewalem_c74cc019f5',
   },
   headerSubtitle: {
     fontSize: 14,
     color: 'rgba(255,255,255,0.8)',
-    fontFamily: 'Zemenay_Regular_Abel_Yeshewalem_c74cc019f5',
   },
   headerActions: {
     flexDirection: 'row',
@@ -541,7 +538,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     borderWidth: 1,
     borderColor: 'rgba(0, 122, 255, 0.15)',
-    fontFamily: 'Bela_Bereka_6a62aa4ee7',
   },
   infoSection: {
     borderTopWidth: 1,

@@ -5,14 +5,19 @@ const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Missing Supabase environment variables');
+  console.warn('⚠️ Missing Supabase environment variables');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = (supabaseUrl && supabaseKey) 
+  ? createClient(supabaseUrl, supabaseKey) 
+  : null;
 
 export class SupabaseService {
   static async fetchMezmurs(): Promise<{ success: boolean; mezmurs: Mezmur[]; error?: string }> {
     try {
+      if (!supabase) {
+        return { success: false, mezmurs: [], error: 'Supabase client is not initialized due to missing environment variables.' };
+      }
       const { data, error } = await supabase
         .from('mezmurs')
         .select('*')
@@ -56,6 +61,9 @@ export class SupabaseService {
 
   static async fetchMezmursByCategory(category: string): Promise<{ success: boolean; mezmurs: Mezmur[]; error?: string }> {
     try {
+      if (!supabase) {
+        return { success: false, mezmurs: [], error: 'Supabase client is not initialized due to missing environment variables.' };
+      }
       const { data, error } = await supabase
         .from('mezmurs')
         .select('*')
@@ -99,6 +107,9 @@ export class SupabaseService {
 
   static async searchMezmurs(query: string): Promise<{ success: boolean; mezmurs: Mezmur[]; error?: string }> {
     try {
+      if (!supabase) {
+        return { success: false, mezmurs: [], error: 'Supabase client is not initialized due to missing environment variables.' };
+      }
       const { data, error } = await supabase
         .from('mezmurs')
         .select('*')

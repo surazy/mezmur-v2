@@ -91,7 +91,7 @@ export default function HomePage() {
       {/* Collapsing Header */}
       <Animated.View style={[styles.header, { height: headerHeight }]}>
         <ImageBackground
-          source={require('@/assets/images/categories/hider.png')}
+          source={require('@/assets/images/categories/headerfinal.png')}
           style={styles.imageBackground}
           resizeMode="cover"
           resizeMethod="resize"
@@ -122,7 +122,7 @@ export default function HomePage() {
               <Animated.Text
                 style={[styles.headerSubtitle, { opacity: subtitleOpacity }]}
               >
-                Ethiopian Religious Songs
+                
               </Animated.Text>
             </Animated.View>
           </View>
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
   },
   imageBackground: { flex: 1 },
   fadeOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   overlay: {
     flex: 1,

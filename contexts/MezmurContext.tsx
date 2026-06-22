@@ -13,7 +13,7 @@ export interface MezmurContextType {
   addToFavorites: (mezmurId: string) => void;
   removeFromFavorites: (mezmurId: string) => void;
   addToHistory: (mezmurId: string) => void;
-  addUserMezmur: (mezmur: Omit<Mezmur, 'id' | 'createdAt' | 'isUserAdded' | 'syncedFromServer'>) => void;
+  addUserMezmur: (mezmur: Omit<Mezmur, 'id' | 'created_at' | 'updated_at' | 'isUserAdded' | 'syncedFromServer'>) => void;
   deleteUserMezmur: (mezmurId: string) => void;
   syncMezmurs: () => Promise<void>;
   getMezmursByCategory: (category: MezmurCategory) => Mezmur[];
@@ -129,11 +129,12 @@ export function MezmurProvider({ children }: { children: ReactNode }) {
     await StorageService.saveHistory(updatedHistory);
   };
 
-  const addUserMezmur = async (mezmurData: Omit<Mezmur, 'id' | 'createdAt' | 'isUserAdded' | 'syncedFromServer'>) => {
+  const addUserMezmur = async (mezmurData: Omit<Mezmur, 'id' | 'created_at' | 'updated_at' | 'isUserAdded' | 'syncedFromServer'>) => {
     const newMezmur: Mezmur = {
       ...mezmurData,
       id: `user_${Date.now()}`,
       created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
       isUserAdded: true,
       syncedFromServer: false
     };

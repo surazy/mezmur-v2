@@ -1,13 +1,12 @@
 {
   "expo": {
     "name": "ፈለገ መዝሙራት",
-    "slug": "onspace-app",
+    "slug": "felege-mezmur-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/ibon.png",
-    "scheme": "onspaceapp",
+    "scheme": "felege-mezmur-app",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "updates": {
       "enabled": true,
       "checkAutomatically": "ON_LOAD",
@@ -21,39 +20,29 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/iconer.png",
+        "foregroundImage": "./assets/images/ibon.png",
         "backgroundColor": "#000000"
       },
-      "edgeToEdgeEnabled": true,
-      "package": "com.surazy.onspaceapp"
+      "package": "com.surazy.app"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/iconer.png"
+      "favicon": "./assets/images/ibon.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/iconer.png",
+          "image": "./assets/images/ibon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#000000"
         }
       ],
       "expo-web-browser",
-      "expo-secure-store",
-      [
-        "expo-font",
-        {
-          "fonts": [
-            "./assets/fonts/Zemenay_Regular_Abel_Yeshewalem_c74cc019f5.ttf",
-            "./assets/fonts/Bela_Bereka_6a62aa4ee7.ttf"
-          ]
-        }
-      ]
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true
@@ -61,7 +50,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "ef8db125-e04a-4ff4-b67d-0c84913c0bb3"
+        "projectId": "b0f8a7f3-6c74-46eb-b754-68d84136dd2a"
       }
     }
   }

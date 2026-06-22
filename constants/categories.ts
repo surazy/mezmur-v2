@@ -22,7 +22,7 @@ export const CATEGORIES: CategoryInfo[] = [
     name: 'የቅድስት አርሴማ መዝሙራት',
     description: 'Songs of Saint Arsema',
     icon: 'person',
-    image: require('@/assets/images/categories/arseema.png'),
+    image: require('@/assets/images/categories/ars.png'),
     color: '#EC4899'
   },
   {
@@ -129,14 +129,14 @@ export const CATEGORIES: CategoryInfo[] = [
     image: require('@/assets/images/categories/wedd.png'),
     color: '#F472B6'
   },
-  {
-    id: 'wereb',
-    name: 'ሌሎች',
-    description: 'Other spiritual songs',
-    icon: 'more-horiz',
-    image: require('@/assets/images/categories/meskel.jpg'),
-    color: '#6B7280'
-  }
+  // {
+  //   id: 'wereb',
+  //   name: 'ሌሎች',
+  //   description: 'Other spiritual songs',
+  //   icon: 'more-horiz',
+  //   image: require('@/assets/images/categories/meskel.jpg'),
+  //   color: '#6B7280'
+  // }
   
 ];
 

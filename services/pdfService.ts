@@ -17,7 +17,7 @@ export class PDFService {
   private static async getBase64Watermark(): Promise<string> {
     try {
       const asset = Asset.fromModule(
-        require('@/assets/images/categories/iconer.jpg')
+        require('@/assets/images/iconer.png')
       );
       await asset.downloadAsync();
 
@@ -25,7 +25,7 @@ export class PDFService {
         encoding: FileSystem.EncodingType.Base64,
       });
 
-      return `data:image/jpeg;base64,${base64}`;
+      return `data:image/png;base64,${base64}`;
     } catch (err) {
       console.warn('⚠️ Failed to load watermark:', err);
       return '';

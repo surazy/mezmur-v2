@@ -1,3 +1,5 @@
+import { ImageSourcePropType } from 'react-native';
+
 export interface Mezmur {
   id: string;
   title: string;
@@ -54,11 +56,11 @@ export interface HistoryItem {
 }
 
 export interface CategoryInfo {
-  [x: string]: ImageSourcePropType | undefined;
   id: MezmurCategory;
   name: string;
   description: string;
   icon: string;
   color: string;
+  image: ImageSourcePropType;
   imageUrl?: any; // Optional - support for require() local images or string URLs
 }
